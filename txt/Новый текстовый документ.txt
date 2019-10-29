@@ -1,0 +1,88 @@
+Object.prototype.once = function(){
+return this;
+}
+
+function sum(a,b){
+return a+b;
+}
+
+function mult(a,b){
+return a*b;
+}
+
+var sum1 = sum.once();
+var mult1 = mult.once();
+console.log(sum1(2,4));
+console.log(mult1(2,5));
+//console.log(once());
+
+Как сделать чтобы once();
+Сам по сеье выдавал предыдущие результаты?
+
+
+
+
+for (var i = 1; i < 5; i++) { setTimeout(() => console.log(i), 0)  }
+
+Что будет выведено в консоль?
+
+Прошитое двоичное дерево
+Двоичное дерево поиска
+АВЛ-дерево
+Эйлеровым Обход графа, который содержит все его рёбра только один раз
+Декартовым
+Байесовым
+Улучшение D[v] в алгоритме Беллмана–Форда производится по формуле
+
+   Post.findOne({_id: newPost._id})
+                                        .then(async (post) => {
+
+ User.findOne({username: updateUserName})
+                                            const {_id,title,postContent,mainimage,date} = post;
+                                            const {author} = await PostHandler.PopulateAuthor(post);
+                                            const {category} = await PostHandler.PopulateCategory(post);
+                                            const MegaPost= {
+                                                _id,
+                                                title,
+                                                postContent,
+                                                mainimage,
+                                                date,
+                                                author,
+                                                category
+                                            };
+                                            res.status(200).json({MegaPost});
+                                            // post.updateOne({'_id': post._id}, {$set: updatePost}, (err) => {
+                                            // })
+                                        })
+                                        .catch(err => console.log(err));
+
+moment(post.date).format("MMM")
+
+async AllPostsWithFullInfo(colectionPosts) {
+
+        const temp = await colectionPosts.find();
+
+        const newTemp = await Promise.all(temp.map(async post => {
+                const {_id, title, postContent, mainimage, date} = post;
+                const {author} = await this.PopulateAuthor(post);
+                const {category} = await this.PopulateCategory(post);
+
+                const fullPost = {
+                    _id,
+                    title,
+                    postContent,
+                    mainimage,
+                    date,
+                    author,
+                    category
+                };
+
+                return fullPost;
+            }
+        ));
+        
+        return newTemp;
+    }
+
+
+

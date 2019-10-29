@@ -1,0 +1,5 @@
+node --inspect-brk . - debug node v chrome(zypunka v nachale programu)
+chrome://inspect - debuger chroma (tam vuburaem ... tools for node)
+env
+
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNWRhNzI5YWRlNTlmNDQyZTI4MGE3M2Q5In0sImlhdCI6MTU3MTQwMTM3OCwiZXhwIjoxNTc1MDAxMzc4fQ.sYsHdA8Nq0lTTakcv-at0GGkYIkTBHj1bWOznlkmhHQ"

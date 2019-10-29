@@ -1,0 +1,1 @@
+obekt - ce osnovna konstrykciya, yaka skladaetsya z pevnuh elementiv.

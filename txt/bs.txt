@@ -1,0 +1,3093 @@
+#include <iostream>
+#include <ctime>
+#include <iomanip>
+#include <conio.h>
+#include <Windows.h>
+#include <string>
+#include <cctype>
+
+#define SIZE 10// vusota ta shuruna igrovogo polya
+#define A 65 // kod ASCII literu A
+#define BATTLE_WAGON 4// rozmir 4 palybnogo korablya
+#define CRUISER 3// rozmir 3 palybnogo korablya
+#define DESTROYER 2// rozmir 2 palybnogo korablya
+
+char field[SIZE][SIZE], field_pc[SIZE][SIZE], columns[SIZE];
+std::string name = "";
+std::string name_pc = "";
+bool step = false;
+char coordinate1 = '0';
+int coordinate2 = 0;
+
+void instruction()// opus pravul gru ta oformlennya polya
+{
+	setlocale(0, ".1251");
+	std::cout << "\t\t\t=== Морской бой ===\n\n"
+		"\t\tПравила размещения кораблей(флота)\n\n"
+		"\t\tДва игровых поля — обычно квадраты 10?10. Одно поле — для растановки флота, второе — для стрельбы.\n\n"
+		"\t\tРазмещаются:\n\n"
+		"\t1. корабль — ряд из 4 клеток(«четырёхпалубный»; линкор);\n"
+		"\t2. корабля — ряд из 3 клеток(«трёхпалубные»; крейсера);\n"
+		"\t3. корабля — ряд из 2 клеток(«двухпалубные»; эсминцы);\n"
+		"\t4. корабля — 1 клетка(«однопалубные»; торпедные катера);\n\n"
+		"При размещении корабли не могут касаться друг друга сторонами и углами. Касание углами запрещается.\n"
+		"Запрещается также размещать корабли буквой «Г», квадратом или зигзагом.\n"
+		"Рядом со «своим» полем чертится «чужое» такого же размера, только пустое.Это участок моря, где плавают корабли противника.\n"
+		"При попадании в корабль противника — на чужом поле ставится крестик, при холостом выстреле — точка.Попавший стреляет ещё раз.\n\n"
+		"Потопление кораблей \n\n"
+		"Если выстрел пришёлся в клетку, не занятую ни одним кораблём противника.Право хода переходит к сопернику.\n"
+		"Если выстрел пришёлся в клетку, где находится многопалубный корабль(размером больше чем 1 клетка).\n"
+		"Стрелявший игрок получает право на ещё один выстрел.\n"
+		"Если выстрел пришёлся в клетку, где находится однотрубный корабль, или последнюю непоражённую клетку многопалубного корабля.\n"
+		"Стрелявший игрок получает право на ещё один выстрел.\n"
+		"\nДля начала игры нажмите клавишу:";
+	_getch();
+}
+
+bool coordinate(int in_x, int in_y)
+{
+	if (in_y == 0 && in_x == 0)
+	{
+		if (field[in_y][in_x] == (char)254 || field[in_y + 1][in_x + 1] == (char)254 || field[in_y][in_x + 1] == (char)254 || field[in_y + 1][in_x] == (char)254)
+			return false;
+		else return true;
+	}
+	else if (in_y == SIZE - 1 && in_x == SIZE - 1)
+	{
+		if (field[in_y][in_x] == (char)254 || field[in_y - 1][in_x - 1] == (char)254 || field[in_y][in_x - 1] == (char)254 || field[in_y - 1][in_x] == (char)254)
+			return false;
+		else return true;
+	}
+	else if (in_y == SIZE - 1 && in_x == 0)
+	{
+		if (field[in_y][in_x] == (char)254 || field[in_y - 1][in_x] == (char)254 || field[in_y][in_x + 1] == (char)254 || field[in_y - 1][in_x + 1] == (char)254)
+			return false;
+		else return true;
+	}
+	else if (in_y == 0 && in_x == SIZE - 1)
+	{
+		if (field[in_y][in_x] == (char)254 || field[in_y][in_x - 1] == (char)254 || field[in_y + 1][in_x] == (char)254 || field[in_y + 1][in_x - 1] == (char)254)
+			return false;
+		else return true;
+	}
+	else if (in_y > 0 && in_y < SIZE - 1 && in_x == 0)
+	{
+		if (field[in_y][in_x] == (char)254 || field[in_y - 1][in_x] == (char)254 || field[in_y + 1][in_x] == (char)254
+			|| field[in_y - 1][in_x + 1] == (char)254 || field[in_y][in_x + 1] == (char)254 || field[in_y + 1][in_x + 1] == (char)254)
+			return false;
+		else return true;
+	}
+	else if (in_y > 0 && in_y < SIZE - 1 && in_x == SIZE - 1)
+	{
+		if (field[in_y][in_x] == (char)254 || field[in_y - 1][in_x] == (char)254 || field[in_y + 1][in_x] == (char)254
+			|| field[in_y - 1][in_x - 1] == (char)254 || field[in_y][in_x - 1] == (char)254 || field[in_y + 1][in_x - 1] == (char)254)
+			return false;
+		else return true;
+	}
+	else if (in_y == 0 && in_x > 0 && in_x < SIZE - 1)
+	{
+		if (field[in_y][in_x] == (char)254 || field[in_y + 1][in_x] == (char)254 || field[in_y][in_x + 1] == (char)254
+			|| field[in_y + 1][in_x + 1] == (char)254 || field[in_y][in_x - 1] == (char)254 || field[in_y + 1][in_x - 1] == (char)254)
+			return false;
+		else return true;
+	}
+	else if (in_y == SIZE - 1 && in_x > 0 && in_x < SIZE - 1)
+	{
+		if (field[in_y][in_x] == (char)254 || field[in_y - 1][in_x] == (char)254 || field[in_y - 1][in_x + 1] == (char)254
+			|| field[in_y][in_x + 1] == (char)254 || field[in_y - 1][in_x - 1] == (char)254 || field[in_y][in_x - 1] == (char)254)
+			return false;
+		else return true;
+	}
+	else {
+		if (field[in_y][in_x] == (char)254 || field[in_y - 1][in_x] == (char)254 || field[in_y + 1][in_x] == (char)254
+			|| field[in_y - 1][in_x + 1] == (char)254 || field[in_y][in_x + 1] == (char)254 || field[in_y + 1][in_x + 1] == (char)254
+			|| field[in_y - 1][in_x - 1] == (char)254 || field[in_y][in_x - 1] == (char)254 || field[in_y + 1][in_x - 1] == (char)254)
+			return false;
+		else return true;
+	}
+}
+
+bool coordinate_pc(int in_x, int in_y)
+{
+	if (in_y == 0 && in_x == 0)
+	{
+		if (field_pc[in_y][in_x] == (char)254 || field_pc[in_y + 1][in_x + 1] == (char)254 || field_pc[in_y][in_x + 1] == (char)254 || field_pc[in_y + 1][in_x] == (char)254)
+			return false;
+		else return true;
+	}
+	else if (in_y == SIZE - 1 && in_x == SIZE - 1)
+	{
+		if (field_pc[in_y][in_x] == (char)254 || field_pc[in_y - 1][in_x - 1] == (char)254 || field_pc[in_y][in_x - 1] == (char)254 || field_pc[in_y - 1][in_x] == (char)254)
+			return false;
+		else return true;
+	}
+	else if (in_y == SIZE - 1 && in_x == 0)
+	{
+		if (field_pc[in_y][in_x] == (char)254 || field_pc[in_y - 1][in_x] == (char)254 || field_pc[in_y][in_x + 1] == (char)254 || field_pc[in_y - 1][in_x + 1] == (char)254)
+			return false;
+		else return true;
+	}
+	else if (in_y == 0 && in_x == SIZE - 1)
+	{
+		if (field_pc[in_y][in_x] == (char)254 || field_pc[in_y][in_x - 1] == (char)254 || field_pc[in_y + 1][in_x] == (char)254 || field_pc[in_y + 1][in_x - 1] == (char)254)
+			return false;
+		else return true;
+	}
+	else if (in_y > 0 && in_y < SIZE - 1 && in_x == 0)
+	{
+		if (field_pc[in_y][in_x] == (char)254 || field_pc[in_y - 1][in_x] == (char)254 || field_pc[in_y + 1][in_x] == (char)254
+			|| field_pc[in_y - 1][in_x + 1] == (char)254 || field_pc[in_y][in_x + 1] == (char)254 || field_pc[in_y + 1][in_x + 1] == (char)254)
+			return false;
+		else return true;
+	}
+	else if (in_y > 0 && in_y < SIZE - 1 && in_x == SIZE - 1)
+	{
+		if (field_pc[in_y][in_x] == (char)254 || field_pc[in_y - 1][in_x] == (char)254 || field_pc[in_y + 1][in_x] == (char)254
+			|| field_pc[in_y - 1][in_x - 1] == (char)254 || field_pc[in_y][in_x - 1] == (char)254 || field_pc[in_y + 1][in_x - 1] == (char)254)
+			return false;
+		else return true;
+	}
+	else if (in_y == 0 && in_x > 0 && in_x < SIZE - 1)
+	{
+		if (field_pc[in_y][in_x] == (char)254 || field_pc[in_y + 1][in_x] == (char)254 || field_pc[in_y][in_x + 1] == (char)254
+			|| field_pc[in_y + 1][in_x + 1] == (char)254 || field_pc[in_y][in_x - 1] == (char)254 || field_pc[in_y + 1][in_x - 1] == (char)254)
+			return false;
+		else return true;
+	}
+	else if (in_y == SIZE - 1 && in_x > 0 && in_x < SIZE - 1)
+	{
+		if (field_pc[in_y][in_x] == (char)254 || field_pc[in_y - 1][in_x] == (char)254 || field_pc[in_y - 1][in_x + 1] == (char)254
+			|| field_pc[in_y][in_x + 1] == (char)254 || field_pc[in_y - 1][in_x - 1] == (char)254 || field_pc[in_y][in_x - 1] == (char)254)
+			return false;
+		else return true;
+	}
+	else {
+		if (field_pc[in_y][in_x] == (char)254 || field_pc[in_y - 1][in_x] == (char)254 || field_pc[in_y + 1][in_x] == (char)254
+			|| field_pc[in_y - 1][in_x + 1] == (char)254 || field_pc[in_y][in_x + 1] == (char)254 || field_pc[in_y + 1][in_x + 1] == (char)254
+			|| field_pc[in_y - 1][in_x - 1] == (char)254 || field_pc[in_y][in_x - 1] == (char)254 || field_pc[in_y + 1][in_x - 1] == (char)254)
+			return false;
+		else return true;
+	}
+}
+
+void fld()
+{
+	setlocale(0, ".866");
+	for (int i = 0; i < SIZE; i++)// poznachaemo stovpci polya
+		columns[i] = 'A' + i;
+	std::cout << "      ";
+	for (int i = 0; i < SIZE; i++)
+		std::cout << columns[i] << ' ';
+	std::cout << std::endl << "     ";
+	for (int i = 0;; i++)//oformlennya verh
+	{
+		if (i == 0) std::cout << (char)218;
+		if (i == SIZE)
+		{
+			std::cout << "\b" << (char)191;
+			break;
+		}
+		std::cout << (char)196 << (char)194;
+	}
+	std::cout << std::endl;
+	for (int i = 0; i < SIZE; i++)//zapovnyemo pole probilamu
+	{
+		std::cout << std::setw(3) << i + 1 << "  " << (char)179;
+		for (int j = 0; j < SIZE; j++)
+		{
+			/*field[i][j] = ' ';*/
+			std::cout << field[i][j] << (char)179;
+		}
+		std::cout << std::endl;
+		std::cout << std::setw(5) << ' ';
+		if (i < SIZE - 1)
+		{
+			for (int i = 0;; i++)//oformlennya nuz
+			{
+				if (i == 0) std::cout << (char)195;
+				if (i == SIZE)
+				{
+					std::cout << "\b" << (char)180;
+					break;
+				}
+				std::cout << (char)196 << (char)197;
+			}
+			std::cout << std::endl;
+		}
+		else
+		{
+			for (int i = 0;; i++)//oformlennya nuz
+			{
+				if (i == 0) std::cout << (char)192;
+				if (i == SIZE)
+				{
+					std::cout << "\b" << (char)217;
+					break;
+				}
+				std::cout << (char)196 << (char)193;
+			}
+		}
+	}
+}
+
+void fld_shoot()
+{
+	setlocale(0, ".866");
+	for (int i = 0; i < SIZE; i++)// poznachaemo stovpci polya
+		columns[i] = 'A' + i;
+	std::cout << "      ";
+	for (int i = 0; i < SIZE; i++)
+		std::cout << columns[i] << ' ';
+	std::cout << std::endl << "     ";
+	for (int i = 0;; i++)//oformlennya verh
+	{
+		if (i == 0) std::cout << (char)218;
+		if (i == SIZE)
+		{
+			std::cout << "\b" << (char)191;
+			break;
+		}
+		std::cout << (char)196 << (char)194;
+	}
+	std::cout << std::endl;
+	for (int i = 0; i < SIZE; i++)
+	{
+		std::cout << std::setw(3) << i + 1 << "  " << (char)179;
+		for (int j = 0; j < SIZE; j++)
+		{
+			/*field[i][j] = ' ';*/
+			std::cout << field_pc[i][j] << (char)179;
+		}
+		std::cout << std::endl;
+		std::cout << std::setw(5) << ' ';
+		if (i < SIZE - 1)
+		{
+			for (int i = 0;; i++)//oformlennya nuz
+			{
+				if (i == 0) std::cout << (char)195;
+				if (i == SIZE)
+				{
+					std::cout << "\b" << (char)180;
+					break;
+				}
+				std::cout << (char)196 << (char)197;
+			}
+			std::cout << std::endl;
+		}
+		else
+		{
+			for (int i = 0;; i++)//oformlennya nuz
+			{
+				if (i == 0) std::cout << (char)192;
+				if (i == SIZE)
+				{
+					std::cout << "\b" << (char)217;
+					break;
+				}
+				std::cout << (char)196 << (char)193;
+			}
+		}
+	}
+}
+
+void setcur(int x, int y) // vuvid bez system("cls")
+{
+	COORD coord;
+	coord.X = x;
+	coord.Y = y;
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
+
+struct My_fleet
+{
+	char battle_wagon[BATTLE_WAGON] = {};
+	char cruiser[CRUISER] = {};
+	char destroyer[DESTROYER] = {};
+	char torpedo_boat;
+};
+
+My_fleet ships =
+{
+	{ (char)254, (char)254, (char)254, (char)254 },
+{ (char)254, (char)254, (char)254 },
+{ (char)254, (char)254 },
+(char)254
+};
+
+
+void turn(int in_x, int in_y, char in_ship_type[], int in_ship_size)
+{
+	char key = '0';
+	int cntr_side = 0;
+	bool flag = false;
+	while (key != ' ') {
+		cntr_side++;
+		if (cntr_side == 1)
+		{
+			if (flag)//pereviryaemo chi pered cum korabel povertalu (mojluvo korabel krytyat po drygomy koly), yaksho flag true to mu zamal'ovyemo (ochushchaemo masuv) poperedne polojennya korablya
+			{
+				for (int i(0); i < in_ship_size; i++)
+					field[in_y][in_x + i] = ' ';
+			}
+			if (in_y > SIZE - in_ship_size) {// perevirka shcho b korabel ne vulazuv za meji masuva
+				flag = false;
+				cntr_side++;
+			}
+			else
+			{
+				flag = true;
+				if (in_x == SIZE - 1 && in_y >= 0)// perevirka chi mojna vuvodut korabel do nuzy zgidno pravul gru (stroki:187 - 222)
+				{
+					for (int i(0); i < in_ship_size; i++)
+					{
+						if (field[in_y + i + 1][in_x - 1] == (char)254 || field[in_y + i + 1][in_x] == (char)254)
+						{
+							flag = false;
+							cntr_side++;
+							break;
+						}
+					}
+				}
+				else if (in_x == 0 && in_y >= 0)
+				{
+					for (int i(0); i < in_ship_size; i++)
+					{
+						if (field[in_y + i + 1][in_x + 1] == (char)254 || field[in_y + i + 1][in_x] == (char)254)
+						{
+							flag = false;
+							cntr_side++;
+							break;
+						}
+					}
+				}
+				else
+				{
+					for (int i(0); i < in_ship_size; i++)
+					{
+						if (field[in_y + i + 1][in_x - 1] == (char)254 || field[in_y + i + 1][in_x + 1] == (char)254 || field[in_y + i + 1][in_x] == (char)254)
+						{
+							flag = false;
+							cntr_side++;
+							break;
+						}
+					}
+				}
+				if (flag)
+				{
+					for (int i(0); i < in_ship_size; i++)
+						field[in_y + i][in_x] = in_ship_type[i];// vuvodut korabel do nuzy
+					setcur(0, 0);
+					fld();
+					key = _getch();
+					_getch();
+				}
+			}
+		}
+		if (cntr_side == 2)
+		{
+			if (flag)//pereviryaemo chi pered cum korabel povertalu (mojluvo korabel krytyat po drygomy koly), yaksho flag true to mu zamal'ovyemo (ochushchaemo masuv) poperedne polojennya korablya
+			{
+				for (int i(0); i < in_ship_size; i++)
+					field[in_y + i][in_x] = ' ';
+			}
+			if (in_x < in_ship_size - 1) {// perevirka shcho b korabel ne vulazuv za meji masuva vlivo
+				flag = false;
+				cntr_side++;
+			}
+			else
+			{
+				flag = true;
+				if (in_y == 0 && in_x <= SIZE - 1)// perevirka chi mojna vuvodutu korabel vlivo zgidno pravul gru (248 - 283)
+				{
+					for (int i(0); i < in_ship_size; i++)
+					{
+						if (field[in_y + 1][in_x - i - 1] == (char)254 || field[in_y][in_x - i - 1] == (char)254)
+						{
+							flag = false;
+							cntr_side++;
+							break;
+						}
+					}
+				}
+				else if (in_y == SIZE - 1 && in_x <= SIZE - 1)
+				{
+					for (int i(0); i < in_ship_size; i++)
+					{
+						if (field[in_y - 1][in_x - i - 1] == (char)254 || field[in_y][in_x - i - 1] == (char)254)
+						{
+							flag = false;
+							cntr_side++;
+							break;
+						}
+					}
+				}
+				else
+				{
+					for (int i(0); i < in_ship_size; i++)
+					{
+						if (field[in_y - 1][in_x - i - 1] == (char)254 || field[in_y + 1][in_x - i - 1] == (char)254 || field[in_y][in_x - i - 1] == (char)254)
+						{
+							flag = false;
+							cntr_side++;
+							break;
+						}
+					}
+				}
+				if (flag)
+				{
+					for (int i(0); i < in_ship_size; i++)
+						field[in_y][in_x - i] = in_ship_type[i];// vuvodut korabel vlivo
+					setcur(0, 0);
+					fld();
+					key = _getch();
+					_getch();
+				}
+			}
+		}
+		if (cntr_side == 3)
+		{
+			if (flag)//pereviryaemo chi pered cum korabel povertalu (mojluvo korabel krytyat po drygomy koly), yaksho flag true to mu zamal'ovyemo (ochushchaemo masuv) poperedne polojennya korablya
+			{
+				for (int i(0); i < in_ship_size; i++)
+					field[in_y][in_x - i] = ' ';
+			}
+			if (in_y < in_ship_size - 1) {// perevirka shcho b korabel ne vulazuv za meji masuva vverh
+				flag = false;
+				cntr_side++;
+			}
+			else
+			{
+				flag = true;
+				if (in_x == 0 && in_y <= SIZE - 1)// perevirka chi mojna vuvodutu korabel vverh zgidno pravul gru (309 - 344)
+				{
+					for (int i(0); i < in_ship_size; i++)
+					{
+						if (field[in_y - i - 1][in_x] == (char)254 || field[in_y - i - 1][in_x + 1] == (char)254)
+						{
+							flag = false;
+							cntr_side++;
+							break;
+						}
+					}
+				}
+				else if (in_x == SIZE - 1 && in_y <= SIZE - 1)
+				{
+					for (int i(0); i < in_ship_size; i++)
+					{
+						if (field[in_y - i - 1][in_x] == (char)254 || field[in_y - i - 1][in_x - 1] == (char)254)
+						{
+							flag = false;
+							cntr_side++;
+							break;
+						}
+					}
+				}
+				else
+				{
+					for (int i(0); i < in_ship_size; i++)
+					{
+						if (field[in_y - i - 1][in_x - 1] == (char)254 || field[in_y - i - 1][in_x + 1] == (char)254 || field[in_y - i - 1][in_x] == (char)254)
+						{
+							flag = false;
+							cntr_side++;
+							break;
+						}
+					}
+				}
+				if (flag)
+				{
+					for (int i(0); i < in_ship_size; i++)
+						field[in_y - i][in_x] = in_ship_type[i];// vuvodut korabel vverh
+					setcur(0, 0);
+					fld();
+					key = _getch();
+					_getch();
+				}
+			}
+		}
+		if (cntr_side == 4)
+		{
+			cntr_side = 0;
+			if (flag)//pereviryaemo chi pered cum korabel povertalu (mojluvo korabel krytyat po drygomy koly), yaksho flag true to mu zamal'ovyemo (ochushchaemo masuv) poperedne polojennya korablya
+			{
+				for (int i(0); i < in_ship_size; i++)
+					field[in_y - i][in_x] = ' ';
+			}
+			if (in_x >= SIZE - in_ship_size + 1) {// perevirka shcho b korabel ne vulazuv za meji masuva vpravo
+				flag = false;
+			}
+			else
+			{
+				flag = true;
+				if (in_x >= 0 && in_y == 0) // perevirka chi mojna vuvodutu korabel vpravo zgidno pravul gru (309 - 344)
+				{
+					for (int i(0); i < in_ship_size; i++)
+					{
+						if (field[in_y + 1][in_x + i + 1] == (char)254 || field[in_y][in_x + i + 1] == (char)254)
+						{
+							flag = false;
+							break;
+						}
+					}
+				}
+				else if (in_x >= 0 && in_y == SIZE - 1)
+				{
+					for (int i(0); i < in_ship_size; i++)
+					{
+						if (field[in_y - 1][in_x + i + 1] == (char)254 || field[in_y][in_x + i + 1] == (char)254)
+						{
+							flag = false;
+							break;
+						}
+					}
+				}
+				else
+				{
+					for (int i(0); i < in_ship_size; i++)
+					{
+						if (field[in_y - 1][in_x + i + 1] == (char)254 || field[in_y + 1][in_x + i + 1] == (char)254 || field[in_y][in_x + i + 1] == (char)254)
+						{
+							flag = false;
+							break;
+						}
+					}
+				}
+				if (flag)
+				{
+					for (int i(0); i < in_ship_size; i++)
+						field[in_y][in_x + i] = in_ship_type[i];// vuvodut korabel goruzontalno vpravo
+					setcur(0, 0);
+					fld();
+					key = _getch();
+					_getch();
+				}
+			}
+		}
+	}
+}
+
+void turn_pc(int in_x, int in_y, char in_ship_type[], int in_ship_size)// in_x = (int)coordinate 1, in_y = coordinate 2
+{
+	srand(time(0));
+	{
+		int cntr_side = 0;
+		bool flag = false;
+		while (!flag) {
+			cntr_side = 1 + rand() % 4;
+			if (cntr_side == 1)
+			{
+				if (flag)//pereviryaemo chi pered cum korabel povertalu (mojluvo korabel krytyat po drygomy koly), yaksho flag true to mu zamal'ovyemo (ochushchaemo masuv) poperedne polojennya korablya
+				{
+					for (int i(0); i < in_ship_size; i++)
+						field_pc[in_y][in_x + i] = ' ';
+				}
+				if (in_y > SIZE - in_ship_size) {// perevirka shcho b korabel ne vulazuv za meji masuva
+					flag = false;
+					cntr_side++;
+				}
+				else
+				{
+					flag = true;
+					if (in_x == SIZE - 1 && in_y >= 0)// perevirka chi mojna vuvodut korabel do nuzy zgidno pravul gru (187 - 222)
+					{
+						for (int i(0); i < in_ship_size; i++)
+						{
+							if (field_pc[in_y + i + 1][in_x - 1] == (char)254 || field_pc[in_y + i + 1][in_x] == (char)254)
+							{
+								flag = false;
+								cntr_side++;
+								break;
+							}
+						}
+					}
+					else if (in_x == 0 && in_y >= 0)
+					{
+						for (int i(0); i < in_ship_size; i++)
+						{
+							if (field_pc[in_y + i + 1][in_x + 1] == (char)254 || field_pc[in_y + i + 1][in_x] == (char)254)
+							{
+								flag = false;
+								cntr_side++;
+								break;
+							}
+						}
+					}
+					else
+					{
+						for (int i(0); i < in_ship_size; i++)
+						{
+							if (field_pc[in_y + i + 1][in_x - 1] == (char)254 || field_pc[in_y + i + 1][in_x + 1] == (char)254 || field_pc[in_y + i + 1][in_x] == (char)254)
+							{
+								flag = false;
+								cntr_side++;
+								break;
+							}
+						}
+					}
+					if (flag)
+					{
+						for (int i(0); i < in_ship_size; i++)
+							field_pc[in_y + i][in_x] = in_ship_type[i];// vuvodut korabel do nuzy
+						setcur(0, 0);
+						fld_shoot();
+					}
+				}
+			}
+			if (cntr_side == 2)
+			{
+				if (flag)//pereviryaemo chi pered cum korabel povertalu (mojluvo korabel krytyat po drygomy koly), yaksho flag true to mu zamal'ovyemo (ochushchaemo masuv) poperedne polojennya korablya
+				{
+					for (int i(0); i < in_ship_size; i++)
+						field_pc[in_y + i][in_x] = ' ';
+				}
+				if (in_x < in_ship_size - 1) {// perevirka shcho b korabel ne vulazuv za meji masuva vlivo
+					flag = false;
+					cntr_side++;
+				}
+				else
+				{
+					flag = true;
+					if (in_y == 0 && in_x <= SIZE - 1)// perevirka chi mojna vuvodutu korabel vlivo zgidno pravul gru (248 - 283)
+					{
+						for (int i(0); i < in_ship_size; i++)
+						{
+							if (field_pc[in_y + 1][in_x - i - 1] == (char)254 || field_pc[in_y][in_x - i - 1] == (char)254)
+							{
+								flag = false;
+								cntr_side++;
+								break;
+							}
+						}
+					}
+					else if (in_y == SIZE - 1 && in_x <= SIZE - 1)
+					{
+						for (int i(0); i < in_ship_size; i++)
+						{
+							if (field_pc[in_y - 1][in_x - i - 1] == (char)254 || field_pc[in_y][in_x - i - 1] == (char)254)
+							{
+								flag = false;
+								cntr_side++;
+								break;
+							}
+						}
+					}
+					else
+					{
+						for (int i(0); i < in_ship_size; i++)
+						{
+							if (field_pc[in_y - 1][in_x - i - 1] == (char)254 || field_pc[in_y + 1][in_x - i - 1] == (char)254 || field_pc[in_y][in_x - i - 1] == (char)254)
+							{
+								flag = false;
+								cntr_side++;
+								break;
+							}
+						}
+					}
+					if (flag)
+					{
+						for (int i(0); i < in_ship_size; i++)
+							field_pc[in_y][in_x - i] = in_ship_type[i];// vuvodut korabel vlivo
+						setcur(0, 0);
+						fld_shoot();
+					}
+				}
+			}
+			if (cntr_side == 3)
+			{
+				if (flag)//pereviryaemo chi pered cum korabel povertalu (mojluvo korabel krytyat po drygomy koly), yaksho flag true to mu zamal'ovyemo (ochushchaemo masuv) poperedne polojennya korablya
+				{
+					for (int i(0); i < in_ship_size; i++)
+						field_pc[in_y][in_x - i] = ' ';
+				}
+				if (in_y < in_ship_size - 1) {// perevirka shcho b korabel ne vulazuv za meji masuva vverh
+					flag = false;
+					cntr_side++;
+				}
+				else
+				{
+					flag = true;
+					if (in_x == 0 && in_y <= SIZE - 1)// perevirka chi mojna vuvodutu korabel vverh zgidno pravul gru (309 - 344)
+					{
+						for (int i(0); i < in_ship_size; i++)
+						{
+							if (field_pc[in_y - i - 1][in_x] == (char)254 || field_pc[in_y - i - 1][in_x + 1] == (char)254)
+							{
+								flag = false;
+								cntr_side++;
+								break;
+							}
+						}
+					}
+					else if (in_x == SIZE - 1 && in_y <= SIZE - 1)
+					{
+						for (int i(0); i < in_ship_size; i++)
+						{
+							if (field_pc[in_y - i - 1][in_x] == (char)254 || field_pc[in_y - i - 1][in_x - 1] == (char)254)
+							{
+								flag = false;
+								cntr_side++;
+								break;
+							}
+						}
+					}
+					else
+					{
+						for (int i(0); i < in_ship_size; i++)
+						{
+							if (field_pc[in_y - i - 1][in_x - 1] == (char)254 || field_pc[in_y - i - 1][in_x + 1] == (char)254 || field_pc[in_y - i - 1][in_x] == (char)254)
+							{
+								flag = false;
+								cntr_side++;
+								break;
+							}
+						}
+					}
+					if (flag)
+					{
+						for (int i(0); i < in_ship_size; i++)
+							field_pc[in_y - i][in_x] = in_ship_type[i];// vuvodut korabel vverh
+						setcur(0, 0);
+						fld_shoot();
+					}
+				}
+			}
+			if (cntr_side == 4)
+			{
+				cntr_side = 0;
+				if (flag)//pereviryaemo chi pered cum korabel povertalu (mojluvo korabel krytyat po drygomy koly), yaksho flag true to mu zamal'ovyemo (ochushchaemo masuv) poperedne polojennya korablya
+				{
+					for (int i(0); i < in_ship_size; i++)
+						field_pc[in_y - i][in_x] = ' ';
+				}
+				if (in_x >= SIZE - in_ship_size + 1) {// perevirka shcho b korabel ne vulazuv za meji masuva vpravo
+					flag = false;
+				}
+				else
+				{
+					flag = true;
+					if (in_x >= 0 && in_y == 0) // perevirka chi mojna vuvodutu korabel vpravo zgidno pravul gru (309 - 344)
+					{
+						for (int i(0); i < in_ship_size; i++)
+						{
+							if (field_pc[in_y + 1][in_x + i + 1] == (char)254 || field_pc[in_y][in_x + i + 1] == (char)254)
+							{
+								flag = false;
+								break;
+							}
+						}
+					}
+					else if (in_x >= 0 && in_y == SIZE - 1)
+					{
+						for (int i(0); i < in_ship_size; i++)
+						{
+							if (field_pc[in_y - 1][in_x + i + 1] == (char)254 || field_pc[in_y][in_x + i + 1] == (char)254)
+							{
+								flag = false;
+								break;
+							}
+						}
+					}
+					else
+					{
+						for (int i(0); i < in_ship_size; i++)
+						{
+							if (field_pc[in_y - 1][in_x + i + 1] == (char)254 || field_pc[in_y + 1][in_x + i + 1] == (char)254 || field_pc[in_y][in_x + i + 1] == (char)254)
+							{
+								flag = false;
+								break;
+							}
+						}
+					}
+					if (flag)
+					{
+						for (int i(0); i < in_ship_size; i++)
+							field_pc[in_y][in_x + i] = in_ship_type[i];// vuvodut korabel goruzontalno vpravo
+						setcur(0, 0);
+						fld_shoot();
+					}
+				}
+			}
+		}
+
+	}
+}
+
+void fleet()
+{
+	int cntr_ships = 1;
+	while (true)
+	{
+		if (cntr_ships == 11)
+			break;
+		setcur(0, 0);
+		fld();
+		setlocale(0, ".1251");
+		std::cout << "\nВведите адрес ячейки в которою хотите разместить начало корабля (например: А 5): ____\b\b\b";
+		std::cin >> coordinate1 >> coordinate2;
+		std::cout << "\nЕсли хотите изменить положение корабля нажмите любую клавишу, в противном случае нажмите \"SPACE\".\n\n";
+		std::cin.clear();
+		coordinate1 = toupper(coordinate1);
+		coordinate1 -= A;
+		coordinate2 -= 1;
+		if ((int)coordinate1 < 0 || (int)coordinate1 >= SIZE || coordinate2 < 0 || coordinate2 >= SIZE)
+		{
+			cntr_ships--;
+			std::cout << "Неправильно введены координаты. Первая координата — буквы латинского алфавита от А до J. Вторая координата — цыфры от 1 до 10.\n"
+				"Пожалуйста, попробуйте снова.\n";
+			_getch();
+			_getch();
+			system("cls");
+		}
+		else if (!coordinate(coordinate1, coordinate2))
+		{
+			std::cout << "Неправильно введены координаты. При размещении корабли не могут касаться друг друга сторонами и углами. Касание углами запрещается.\n"
+				"Пожалуйста, попробуйте снова.\n";
+			cntr_ships--;
+			_getch();
+			_getch();
+			system("cls");
+		}
+		else
+		{
+			setcur(0, 0);
+			if (cntr_ships == 1)
+				turn(coordinate1, coordinate2, ships.battle_wagon, BATTLE_WAGON);
+			if (cntr_ships == 2 || cntr_ships == 3)
+				turn(coordinate1, coordinate2, ships.cruiser, CRUISER);
+			if (cntr_ships > 3 && cntr_ships < 7)
+				turn(coordinate1, coordinate2, ships.destroyer, DESTROYER);
+			if (cntr_ships > 6)
+				field[coordinate2][(int)coordinate1] = ships.torpedo_boat;
+			cntr_ships++;
+		}
+	}
+}
+
+void fleet_pc()
+{
+	int cntr_ships = 1;
+	while (true)
+	{
+		if (cntr_ships == 11)
+			break;
+		setcur(0, 0);
+		fld_shoot();
+		coordinate1 = rand() % (SIZE - 1);
+		coordinate2 = rand() % (SIZE - 1);
+		if ((int)coordinate1 < 0 || (int)coordinate1 >= SIZE || coordinate2 < 0 || coordinate2 >= SIZE || !coordinate_pc(coordinate1, coordinate2))
+			cntr_ships--;
+		else
+		{
+			setcur(0, 0);
+			if (cntr_ships == 1)
+				turn_pc(coordinate1, coordinate2, ships.battle_wagon, BATTLE_WAGON);
+			if (cntr_ships == 2 || cntr_ships == 3)
+				turn_pc(coordinate1, coordinate2, ships.cruiser, CRUISER);
+			if (cntr_ships > 3 && cntr_ships < 7)
+				turn_pc(coordinate1, coordinate2, ships.destroyer, DESTROYER);
+			if (cntr_ships > 6 && cntr_ships < 11)
+				field_pc[coordinate2][(int)coordinate1] = ships.torpedo_boat;
+		}
+		cntr_ships++;
+	}
+}
+
+void shoot(int in_x, int in_y)
+{
+	int i = 0;
+	bool flag = false/*, up_down = false, left_right = false*/;
+	if (field_pc[in_y][in_x] == ' ')
+	{
+		field_pc[in_y][in_x] = '*';
+		std::cout << "\nМимо!";
+		step = false;
+	}
+	else if (field_pc[in_y][in_x] == (char)254)
+	{
+		field_pc[in_y][in_x] = 'X';
+		if (in_y == 0 && in_x == 0)
+		{
+			if (field_pc[in_y + 1][in_x] == (char)254 || field_pc[in_y + 1][in_x] == 'X')
+			{
+				while (true)
+				{
+					i++;
+					if (field_pc[in_y + i][in_x] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y + i][in_x] == 'X')
+					{
+						if (field_pc[in_y + i + 1][in_x] == '*' || field_pc[in_y + i + 1][in_x] == ' ')
+						{
+							flag = false;
+							break;
+						}
+						else if (field_pc[in_y + i + 1][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+				}
+			}
+			else if (field_pc[in_y][in_x + 1] == (char)254 || field_pc[in_y][in_x + 1] == 'X')
+			{
+				while (true)
+				{
+					i++;
+					if (field_pc[in_y][in_x + i] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y][in_x + i] == 'X')
+					{
+						if (field_pc[in_y][in_x + i + 1] == '*' || field_pc[in_y][in_x + i + 1] == ' ')
+						{
+							flag = false;
+							break;
+						}
+						else if (field_pc[in_y][in_x + i + 1] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+				}
+			}
+			else
+				flag = false;
+		}
+		else if (in_y == SIZE - 1 && in_x == SIZE - 1)
+		{
+			if (field_pc[in_y - 1][in_x] == (char)254 || field_pc[in_y - 1][in_x] == 'X')
+			{
+				while (true)
+				{
+					i++;
+					if (field_pc[in_y - i][in_x] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y - i][in_x] == 'X')
+					{
+						if (field_pc[in_y - i - 1][in_x] == '*' || field_pc[in_y - i - 1][in_x] == ' ')
+						{
+							flag = false;
+							break;
+						}
+						else if (field_pc[in_y - i - 1][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+				}
+			}
+			else if (field_pc[in_y][in_x - 1] == (char)254 || field_pc[in_y][in_x - 1] == 'X')
+			{
+				while (true)
+				{
+					i++;
+					if (field_pc[in_y][in_x - i] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y][in_x - i] == 'X')
+					{
+						if (field_pc[in_y][in_x - i - 1] == '*' || field_pc[in_y][in_x - i - 1] == ' ')
+						{
+							flag = false;
+							break;
+						}
+						else if (field_pc[in_y][in_x - i - 1] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+				}
+			}
+			else
+				flag = false;
+		}
+		else if (in_y == SIZE - 1 && in_x == 0)
+		{
+			if (field_pc[in_y - 1][in_x] == (char)254 || field_pc[in_y - 1][in_x] == 'X')
+			{
+				while (true)
+				{
+					i++;
+					if (field_pc[in_y - i][in_x] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y - i][in_x] == 'X')
+					{
+						if (field_pc[in_y - i - 1][in_x] == '*' || field_pc[in_y - i - 1][in_x] == ' ')
+						{
+							flag = false;
+							break;
+						}
+						else if (field_pc[in_y - i - 1][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+				}
+			}
+			else if (field_pc[in_y][in_x + 1] == (char)254 || field_pc[in_y][in_x + 1] == 'X')
+			{
+				while (true)
+				{
+					i++;
+					if (field_pc[in_y][in_x + i] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y][in_x + i] == 'X')
+					{
+						if (field_pc[in_y][in_x + i + 1] == '*' || field_pc[in_y][in_x + i + 1] == ' ')
+						{
+							flag = false;
+							break;
+						}
+						else if (field_pc[in_y][in_x + i + 1] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+				}
+			}
+			else
+				flag = false;
+		}
+		else if (in_y == 0 && in_x == SIZE - 1)
+		{
+			if (field_pc[in_y + 1][in_x] == (char)254 || field_pc[in_y + 1][in_x] == 'X')
+			{
+				while (true)
+				{
+					i++;
+					if (field_pc[in_y + i][in_x] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y + i][in_x] == 'X')
+					{
+						if (field_pc[in_y + i + 1][in_x] == '*' || field_pc[in_y + i + 1][in_x] == ' ')
+						{
+							flag = false;
+							break;
+						}
+						else if (field_pc[in_y + i + 1][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+				}
+			}
+			else if (field_pc[in_y][in_x - 1] == (char)254 || field_pc[in_y][in_x - 1] == 'X')
+			{
+				while (true)
+				{
+					i++;
+					if (field_pc[in_y][in_x - i] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y][in_x - i] == 'X')
+					{
+						if (field_pc[in_y][in_x - i - 1] == '*' || field_pc[in_y][in_x - i - 1] == ' ')
+						{
+							flag = false;
+							break;
+						}
+						else if (field_pc[in_y][in_x - i - 1] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+				}
+			}
+			else
+				flag = false;
+		}
+		else if (in_y > 0 && in_y < SIZE - 1 && in_x == 0)
+		{
+			if (field_pc[in_y + 1][in_x] == (char)254 || field_pc[in_y + 1][in_x] == 'X' || field_pc[in_y - 1][in_x] == (char)254 || field_pc[in_y - 1][in_x] == 'X')
+			{
+				while (true)
+				{
+					i++;
+					if (field_pc[in_y + i][in_x] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y + i][in_x] == 'X')
+					{
+						if (in_y + i == SIZE - 1)
+						{
+							for (int i(1); ; i++)
+							{
+								if (field_pc[in_y - i][in_x] == (char)254)
+								{
+									flag = true;
+									break;
+								}
+								else if (field_pc[in_y - i][in_x] == 'X')
+								{
+									if (field_pc[in_y - i - 1][in_x] == '*' || field_pc[in_y - i - 1][in_x] == ' ')
+									{
+										flag = false;
+										break;
+									}
+									else if (field_pc[in_y - i - 1][in_x] == (char)254)
+									{
+										flag = true;
+										break;
+									}
+									else continue;
+								}
+							}
+							break;
+						}
+						else if (field_pc[in_y + i + 1][in_x] == '*' || field_pc[in_y + i + 1][in_x] == ' ')
+						{
+							if (field_pc[in_y - i][in_x] == '*' || field_pc[in_y - i][in_x] == ' ')
+							{
+								flag = false;
+								break;
+							}
+							else if (field_pc[in_y - i][in_x] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else if (field_pc[in_y - i][in_x] == 'X')
+							{
+								if (in_y - i == 0)
+								{
+									flag = false;
+									break;
+								}
+								else if (field_pc[in_y - i - 1][in_x] == '*' || field_pc[in_y - i - 1][in_x] == ' ')
+								{
+									flag = false;
+									break;
+								}
+								else if (field_pc[in_y - i - 1][in_x] == (char)254)
+								{
+									flag = true;
+									break;
+								}
+								else continue;
+							}
+						}
+						else if (field_pc[in_y + i + 1][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+					else if (field_pc[in_y - i][in_x] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y - i][in_x] == 'X')
+					{
+						if (in_y - i == 0 || field_pc[in_y - i - 1][in_x] == '*' || field_pc[in_y - i - 1][in_x] == ' ')
+						{
+							if (field_pc[in_y + i][in_x] == '*' || field_pc[in_y + i][in_x] == ' ')
+							{
+								flag = false;
+								break;
+							}
+						}
+						else if (field_pc[in_y - i - 1][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+				}
+			}
+			else if (field_pc[in_y][in_x + 1] == (char)254 || field_pc[in_y][in_x + 1] == 'X')
+			{
+				while (true)
+				{
+					i++;
+					if (field_pc[in_y][in_x + i] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y][in_x + i] == 'X')
+					{
+						if (field_pc[in_y][in_x + i + 1] == '*' || field_pc[in_y][in_x + i + 1] == ' ')
+						{
+							flag = false;
+							break;
+						}
+						else if (field_pc[in_y][in_x + i + 1] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+				}
+			}
+			else
+				flag = false;
+		}
+		else if (in_y > 0 && in_y < SIZE - 1 && in_x == SIZE - 1)
+		{
+			if (field_pc[in_y + 1][in_x] == (char)254 || field_pc[in_y + 1][in_x] == 'X' || field_pc[in_y - 1][in_x] == (char)254 || field_pc[in_y - 1][in_x] == 'X')
+			{
+				while (true)
+				{
+					i++;
+					if (field_pc[in_y + i][in_x] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y + i][in_x] == 'X')
+					{
+						if (in_y + i == SIZE - 1)
+						{
+							for (int i(1); ; i++)
+							{
+								if (field_pc[in_y - i][in_x] == (char)254)
+								{
+									flag = true;
+									break;
+								}
+								else if (field_pc[in_y - i][in_x] == 'X')
+								{
+									if (field_pc[in_y - i - 1][in_x] == '*' || field_pc[in_y - i - 1][in_x] == ' ')
+									{
+										flag = false;
+										break;
+									}
+									else if (field_pc[in_y - i - 1][in_x] == (char)254)
+									{
+										flag = true;
+										break;
+									}
+									else continue;
+								}
+							}
+							break;
+						}
+						else if (field_pc[in_y + i + 1][in_x] == '*' || field_pc[in_y + i + 1][in_x] == ' ')
+						{
+							if (field_pc[in_y - i][in_x] == '*' || field_pc[in_y - i][in_x] == ' ')
+							{
+								flag = false;
+								break;
+							}
+							else if (field_pc[in_y - i][in_x] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else if (field_pc[in_y - i][in_x] == 'X')
+							{
+								if (in_y - i == 0)
+								{
+									flag = false;
+									break;
+								}
+								else if (field_pc[in_y - i - 1][in_x] == '*' || field_pc[in_y - i - 1][in_x] == ' ')
+								{
+									flag = false;
+									break;
+								}
+								else if (field_pc[in_y - i - 1][in_x] == (char)254)
+								{
+									flag = true;
+									break;
+								}
+								else continue;
+							}
+						}
+						else if (field_pc[in_y + i + 1][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+					else if (field_pc[in_y - i][in_x] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y - i][in_x] == 'X')
+					{
+						if (in_y - i == 0 || field_pc[in_y - i - 1][in_x] == '*' || field_pc[in_y - i - 1][in_x] == ' ')
+						{
+							if (field_pc[in_y + i][in_x] == '*' || field_pc[in_y + i][in_x] == ' ')
+							{
+								flag = false;
+								break;
+							}
+						}
+						else if (field_pc[in_y - i - 1][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+				}
+			}
+			else if (field_pc[in_y][in_x - 1] == (char)254 || field_pc[in_y][in_x - 1] == 'X')
+			{
+				while (true)
+				{
+					i++;
+					if (field_pc[in_y][in_x - i] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y][in_x - i] == 'X')
+					{
+						if (field_pc[in_y][in_x - i - 1] == '*' || field_pc[in_y][in_x - i - 1] == ' ')
+						{
+							flag = false;
+							break;
+						}
+						else if (field_pc[in_y][in_x - i - 1] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+				}
+			}
+			else
+				flag = false;
+		}
+		else if (in_y == 0 && in_x > 0 && in_x < SIZE - 1)
+		{
+			if (field_pc[in_y][in_x + 1] == (char)254 || field_pc[in_y][in_x + 1] == 'X' || field_pc[in_y][in_x - 1] == (char)254 || field_pc[in_y][in_x - 1] == 'X')
+			{
+				while (true)
+				{
+					i++;
+					if (field_pc[in_y][in_x + i] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y][in_x + i] == 'X')
+					{
+						if (in_x + i == SIZE - 1)
+						{
+							for (int i(1); ; i++)
+							{
+								if (field_pc[in_y][in_x - i] == (char)254)
+								{
+									flag = true;
+									break;
+								}
+								else if (field_pc[in_y][in_x - i] == 'X')
+								{
+									if (field_pc[in_y][in_x - i - 1] == '*' || field_pc[in_y][in_x - i - 1] == ' ')
+									{
+										flag = false;
+										break;
+									}
+									else if (field_pc[in_y][in_x - i - 1] == (char)254)
+									{
+										flag = true;
+										break;
+									}
+									else continue;
+								}
+							}
+							break;
+						}
+						else if (field_pc[in_y][in_x + i + 1] == '*' || field_pc[in_y][in_x + i + 1] == ' ')
+						{
+							if (field_pc[in_y][in_x - i] == '*' || field_pc[in_y][in_x - i] == ' ')
+							{
+								flag = false;
+								break;
+							}
+							else if (field_pc[in_y][in_x - i] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else if (field_pc[in_y][in_x - i] == 'X')
+							{
+								if (in_x - i == 0)
+								{
+									flag = false;
+									break;
+								}
+								else if (field_pc[in_y][in_x - i - 1] == '*' || field_pc[in_y][in_x - i - 1] == ' ')
+								{
+									flag = false;
+									break;
+								}
+								else if (field_pc[in_y][in_x - i - 1] == (char)254)
+								{
+									flag = true;
+									break;
+								}
+								else continue;
+							}
+						}
+						else if (field_pc[in_y][in_x + i + 1] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+					else if (field_pc[in_y][in_x - i] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y][in_x - i] == 'X')
+					{
+						if (in_x - i == 0 || field_pc[in_y][in_x - i - 1] == '*' || field_pc[in_y][in_x - i - 1] == ' ')
+						{
+							if (field_pc[in_y][in_x + i] == '*' || field_pc[in_y][in_x + i] == ' ')
+							{
+								flag = false;
+								break;
+							}
+						}
+						else if (field_pc[in_y][in_x - i - 1] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+				}
+			}
+			else if (field_pc[in_y + 1][in_x] == (char)254 || field_pc[in_y + 1][in_x] == 'X')
+			{
+				while (true)
+				{
+					i++;
+					if (field_pc[in_y + i][in_x] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y + i][in_x] == 'X')
+					{
+						if (field_pc[in_y + i + 1][in_x] == '*' || field_pc[in_y + i + 1][in_x] == ' ')
+						{
+							flag = false;
+							break;
+						}
+						else if (field_pc[in_y + i + 1][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+				}
+			}
+			else
+				flag = false;
+		}
+		else if (in_y == SIZE - 1 && in_x > 0 && in_x < SIZE - 1)
+		{
+			if (field_pc[in_y][in_x + 1] == (char)254 || field_pc[in_y][in_x + 1] == 'X' || field_pc[in_y][in_x - 1] == (char)254 || field_pc[in_y][in_x - 1] == 'X')
+			{
+				while (true)
+				{
+					i++;
+					if (field_pc[in_y][in_x + i] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y][in_x + i] == 'X')
+					{
+						if (in_x + i == SIZE - 1)
+						{
+							for (int i(1); ; i++)
+							{
+								if (field_pc[in_y][in_x - i] == (char)254)
+								{
+									flag = true;
+									break;
+								}
+								else if (field_pc[in_y][in_x - i] == 'X')
+								{
+									if (field_pc[in_y][in_x - i - 1] == '*' || field_pc[in_y][in_x - i - 1] == ' ')
+									{
+										flag = false;
+										break;
+									}
+									else if (field_pc[in_y][in_x - i - 1] == (char)254)
+									{
+										flag = true;
+										break;
+									}
+									else continue;
+								}
+							}
+							break;
+						}
+						else if (field_pc[in_y][in_x + i + 1] == '*' || field_pc[in_y][in_x + i + 1] == ' ')
+						{
+							if (field_pc[in_y][in_x - i] == '*' || field_pc[in_y][in_x - i] == ' ')
+							{
+								flag = false;
+								break;
+							}
+							else if (field_pc[in_y][in_x - i] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else if (field_pc[in_y][in_x - i] == 'X')
+							{
+								if (in_x - i == 0)
+								{
+									flag = false;
+									break;
+								}
+								else if (field_pc[in_y][in_x - i - 1] == '*' || field_pc[in_y][in_x - i - 1] == ' ')
+								{
+									flag = false;
+									break;
+								}
+								else if (field_pc[in_y][in_x - i - 1] == (char)254)
+								{
+									flag = true;
+									break;
+								}
+								else continue;
+							}
+						}
+						else if (field_pc[in_y][in_x + i + 1] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+					else if (field_pc[in_y][in_x - i] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y][in_x - i] == 'X')
+					{
+						if (in_x - i == 0 || field_pc[in_y][in_x - i - 1] == '*' || field_pc[in_y][in_x - i - 1] == ' ')
+						{
+							if (field_pc[in_y][in_x + i] == '*' || field_pc[in_y][in_x + i] == ' ')
+							{
+								flag = false;
+								break;
+							}
+						}
+						else if (field_pc[in_y][in_x - i - 1] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+				}
+			}
+			else if (field_pc[in_y - 1][in_x] == (char)254 || field_pc[in_y - 1][in_x] == 'X')
+			{
+				while (true)
+				{
+					i++;
+					if (field_pc[in_y - i][in_x] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y - i][in_x] == 'X')
+					{
+						if (field_pc[in_y - i - 1][in_x] == '*' || field_pc[in_y - i - 1][in_x] == ' ')
+						{
+							flag = false;
+							break;
+						}
+						else if (field_pc[in_y - i - 1][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+				}
+			}
+			else
+				flag = false;
+		}
+		else {
+			if (field_pc[in_y][in_x + 1] == (char)254 || field_pc[in_y][in_x + 1] == 'X' || field_pc[in_y][in_x - 1] == (char)254 || field_pc[in_y][in_x - 1] == 'X')
+			{
+				while (true)
+				{
+					i++;
+					if (field_pc[in_y][in_x + i] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y][in_x + i] == 'X')
+					{
+						if (in_x + i == SIZE - 1)
+						{
+							for (int i(1); ; i++)
+							{
+								if (field_pc[in_y][in_x - i] == (char)254)
+								{
+									flag = true;
+									break;
+								}
+								else if (field_pc[in_y][in_x - i] == 'X')
+								{
+									if (field_pc[in_y][in_x - i - 1] == '*' || field_pc[in_y][in_x - i - 1] == ' ')
+									{
+										flag = false;
+										break;
+									}
+									else if (field_pc[in_y][in_x - i - 1] == (char)254)
+									{
+										flag = true;
+										break;
+									}
+									else continue;
+								}
+							}
+							break;
+						}
+						else if (field_pc[in_y][in_x + i + 1] == '*' || field_pc[in_y][in_x + i + 1] == ' ')
+						{
+							if (field_pc[in_y][in_x - i] == '*' || field_pc[in_y][in_x - i] == ' ')
+							{
+								flag = false;
+								break;
+							}
+							else if (field_pc[in_y][in_x - i] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else if (field_pc[in_y][in_x - i] == 'X')
+							{
+								if (in_x - i == 0)
+								{
+									flag = false;
+									break;
+								}
+								else if (field_pc[in_y][in_x - i - 1] == '*' || field_pc[in_y][in_x - i - 1] == ' ')
+								{
+									flag = false;
+									break;
+								}
+								else if (field_pc[in_y][in_x - i - 1] == (char)254)
+								{
+									flag = true;
+									break;
+								}
+								else continue;
+							}
+						}
+						else if (field_pc[in_y][in_x + i + 1] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+					else if (field_pc[in_y][in_x - i] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y][in_x - i] == 'X')
+					{
+						if (in_x - i == 0 || field_pc[in_y][in_x - i - 1] == '*' || field_pc[in_y][in_x - i - 1] == ' ')
+						{
+							if (field_pc[in_y][in_x + i] == '*' || field_pc[in_y][in_x + i] == ' ')
+							{
+								flag = false;
+								break;
+							}
+						}
+						else if (field_pc[in_y][in_x - i - 1] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+				}
+			}
+			else if (field_pc[in_y + 1][in_x] == (char)254 || field_pc[in_y + 1][in_x] == 'X' || field_pc[in_y - 1][in_x] == (char)254 || field_pc[in_y - 1][in_x] == 'X')
+			{
+				while (true)
+				{
+					i++;
+					if (field_pc[in_y + i][in_x] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y + i][in_x] == 'X')
+					{
+						if (in_y + i == SIZE - 1)
+						{
+							for (int i(1); ; i++)
+							{
+								if (field_pc[in_y - i][in_x] == (char)254)
+								{
+									flag = true;
+									break;
+								}
+								else if (field_pc[in_y - i][in_x] == 'X')
+								{
+									if (field_pc[in_y - i - 1][in_x] == '*' || field_pc[in_y - i - 1][in_x] == ' ')
+									{
+										flag = false;
+										break;
+									}
+									else if (field_pc[in_y - i - 1][in_x] == (char)254)
+									{
+										flag = true;
+										break;
+									}
+									else continue;
+								}
+							}
+							break;
+						}
+						else if (field_pc[in_y + i + 1][in_x] == '*' || field_pc[in_y + i + 1][in_x] == ' ')
+						{
+							if (field_pc[in_y - i][in_x] == '*' || field_pc[in_y - i][in_x] == ' ')
+							{
+								flag = false;
+								break;
+							}
+							else if (field_pc[in_y - i][in_x] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else if (field_pc[in_y - i][in_x] == 'X')
+							{
+								if (in_y - i == 0)
+								{
+									flag = false;
+									break;
+								}
+								else if (field_pc[in_y - i - 1][in_x] == '*' || field_pc[in_y - i - 1][in_x] == ' ')
+								{
+									flag = false;
+									break;
+								}
+								else if (field_pc[in_y - i - 1][in_x] == (char)254)
+								{
+									flag = true;
+									break;
+								}
+								else continue;
+							}
+						}
+						else if (field_pc[in_y + i + 1][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+					else if (field_pc[in_y - i][in_x] == (char)254)
+					{
+						flag = true;
+						break;
+					}
+					else if (field_pc[in_y - i][in_x] == 'X')
+					{
+						if (in_y - i == 0 || field_pc[in_y - i - 1][in_x] == '*' || field_pc[in_y - i - 1][in_x] == ' ')
+						{
+							if (field_pc[in_y + i][in_x] == '*' || field_pc[in_y + i][in_x] == ' ')
+							{
+								flag = false;
+								break;
+							}
+						}
+						else if (field_pc[in_y - i - 1][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else continue;
+					}
+				}
+			}
+		}
+	}
+	else
+		std::cout << "\nВы ввели координаты по которым уже был произведен выстрел, введите другой адрес.";
+	if (flag)
+		std::cout << "\nРанил(а)!";
+	else
+		std::cout << "\nУбил(а)!";
+}
+
+int pc_step = 0;
+char pc_memory[SIZE][SIZE];
+bool flag = false;
+
+void shoot_pc(int in_x, int in_y)
+{
+	srand(time(0));
+	while (!step)
+	{
+	/*	switch (pc_step)
+		{
+		case 0:
+		{
+			in_y = rand() % 10;
+			in_x = rand() % 10;
+			break;
+		}
+		case 1:
+		{
+			in_x += 1;
+			break;
+		}
+		case 2:
+		{
+			in_y += 1;
+			break;
+		}
+		case 3:
+		{
+			in_x -= 1;
+			break;
+		}
+		case 4:
+		{
+			in_y -= 1;
+			break;
+		}
+		}*/
+		/*if (field[in_y][in_x] == ' ')
+		{
+			field[in_y][in_x] = '*';
+			std::cout << "\nМимо!";
+			step = true;
+		}*/
+			in_y = rand() % 10;
+			in_x = rand() % 10;
+		if (field[in_y][in_x] == (char)254)
+		{
+			field[in_y][in_x] = 'X';
+			if (in_y == 0 && in_x == 0)
+			{
+				if (field[in_y + 1][in_x] == (char)254 || field[in_y + 1][in_x] == 'X')
+				{
+					for(int i(1); ; i++)
+					{
+						if (field[in_y + i][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y + i][in_x] == 'X')
+						{
+							if (field[in_y + i + 1][in_x] == '*' || field[in_y + i + 1][in_x] == ' ')
+							{
+								flag = false;
+								break;
+							}
+							else if (field[in_y + i + 1][in_x] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+					}
+				}
+				else if (field[in_y][in_x + 1] == (char)254 || field[in_y][in_x + 1] == 'X')
+				{
+					for (int i(1); ; i++)
+					{
+						if (field[in_y][in_x + i] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y][in_x + i] == 'X')
+						{
+							if (field[in_y][in_x + i + 1] == '*' || field[in_y][in_x + i + 1] == ' ')
+							{
+								flag = false;
+								break;
+							}
+							else if (field[in_y][in_x + i + 1] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+					}
+				}
+				else
+					flag = false;
+				if (flag)
+				{
+					pc_step = rand() & 1;
+					while (true)
+					{
+						if (pc_step)
+							in_x += 1;
+						else
+							in_y += 1;
+						if (pc_step)
+						{
+							if (field[in_y][in_x] == (char)254)
+							{
+								field[in_y][in_x] = 'X';
+								if (field[in_y][in_x + 1] == '*' || field[in_y][in_x + 1] == ' ')
+									flag = false;
+								else if (field[in_y][in_x + 1] == (char)254)
+									flag = true;
+							}
+							else if (field[in_y][in_x] == ' ')
+							{
+								field[in_y][in_x] = '*';
+								std::cout << "\nМимо!";
+								step = true;
+								flag = true;
+								pc_step = 0;
+								break;
+							}
+							if (flag)
+							{
+								std::cout << "\nРанил(а)!";
+								pc_step = 1;
+							}
+							else
+							{
+								std::cout << "\nУбил(а)!";
+								break;
+							}
+						}
+						else
+						{
+							if (field[in_y][in_x] == (char)254)
+							{
+								field[in_y][in_x] = 'X';
+								if (field[in_y + 1][in_x] == '*' || field[in_y + 1][in_x] == ' ')
+									flag = false;
+								else if (field[in_y + 1][in_x] == (char)254)
+									flag = true;
+							}
+							else if (field[in_y][in_x] == ' ')
+							{
+								field[in_y][in_x] = '*';
+								std::cout << "\nМимо!";
+								step = true;
+								flag = true;
+								pc_step = 1;
+								break;
+							}
+							if (flag)
+							{
+								std::cout << "\nРанил(а)!";
+								pc_step = 0;
+							}
+							else
+							{
+								std::cout << "\nУбил(а)!";
+								break;
+							}
+						}
+					}
+				}
+			/*	if (flag)
+				{
+					std::cout << "\nРанил(а)!";
+					pc_step = 1 + rand() % 3;
+				}
+				else {
+					std::cout << "\nУбил(а)!";
+					pc_step = 0;
+				}*/
+			}
+			else if (in_y == SIZE - 1 && in_x == SIZE - 1)
+			{
+				if (field[in_y - 1][in_x] == (char)254 || field[in_y - 1][in_x] == 'X')
+				{
+					while (true)
+					{
+						i++;
+						if (field[in_y - i][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y - i][in_x] == 'X')
+						{
+							if (field[in_y - i - 1][in_x] == '*' || field[in_y - i - 1][in_x] == ' ')
+							{
+								flag = false;
+								break;
+							}
+							else if (field[in_y - i - 1][in_x] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+					}
+					i = 0;
+				}
+				else if (field[in_y][in_x - 1] == (char)254 || field[in_y][in_x - 1] == 'X')
+				{
+					while (true)
+					{
+						i++;
+						if (field[in_y][in_x - i] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y][in_x - i] == 'X')
+						{
+							if (field[in_y][in_x - i - 1] == '*' || field[in_y][in_x - i - 1] == ' ')
+							{
+								flag = false;
+								break;
+							}
+							else if (field[in_y][in_x - i - 1] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+					}
+					i = 0;
+				}
+				else
+					flag = false;
+				if (flag)
+				{
+					std::cout << "\nРанил(а)!";
+					pc_step = 3 + rand() % 1;
+				}
+				else {
+					std::cout << "\nУбил(а)!";
+					pc_step = 0;
+				}
+			}
+			else if (in_y == SIZE - 1 && in_x == 0)
+			{
+				if (field[in_y - 1][in_x] == (char)254 || field[in_y - 1][in_x] == 'X')
+				{
+					while (true)
+					{
+						i++;
+						if (field[in_y - i][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y - i][in_x] == 'X')
+						{
+							if (field[in_y - i - 1][in_x] == '*' || field[in_y - i - 1][in_x] == ' ')
+							{
+								flag = false;
+								break;
+							}
+							else if (field[in_y - i - 1][in_x] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+					}
+					i = 0;
+				}
+				else if (field[in_y][in_x + 1] == (char)254 || field[in_y][in_x + 1] == 'X')
+				{
+					while (true)
+					{
+						i++;
+						if (field[in_y][in_x + i] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y][in_x + i] == 'X')
+						{
+							if (field[in_y][in_x + i + 1] == '*' || field[in_y][in_x + i + 1] == ' ')
+							{
+								flag = false;
+								break;
+							}
+							else if (field[in_y][in_x + i + 1] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+					}
+					i = 0;
+				}
+				else
+					flag = false;
+				if (flag)
+				{
+					std::cout << "\nРанил(а)!";
+					if (rand() & 1)
+						pc_step = 1;
+					else step = 4;
+				}
+				else {
+					std::cout << "\nУбил(а)!";
+					pc_step = 0;
+				}
+			}
+			else if (in_y == 0 && in_x == SIZE - 1)
+			{
+				if (field[in_y + 1][in_x] == (char)254 || field[in_y + 1][in_x] == 'X')
+				{
+					while (true)
+					{
+						i++;
+						if (field[in_y + i][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y + i][in_x] == 'X')
+						{
+							if (field[in_y + i + 1][in_x] == '*' || field[in_y + i + 1][in_x] == ' ')
+							{
+								flag = false;
+								break;
+							}
+							else if (field[in_y + i + 1][in_x] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+					}
+					i = 0;
+				}
+				else if (field[in_y][in_x - 1] == (char)254 || field[in_y][in_x - 1] == 'X')
+				{
+					while (true)
+					{
+						i++;
+						if (field[in_y][in_x - i] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y][in_x - i] == 'X')
+						{
+							if (field[in_y][in_x - i - 1] == '*' || field[in_y][in_x - i - 1] == ' ')
+							{
+								flag = false;
+								break;
+							}
+							else if (field[in_y][in_x - i - 1] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+					}
+					i = 0;
+				}
+				else
+					flag = false;
+			}
+			else if (in_y > 0 && in_y < SIZE - 1 && in_x == 0)
+			{
+				if (field[in_y + 1][in_x] == (char)254 || field[in_y + 1][in_x] == 'X' || field[in_y - 1][in_x] == (char)254 || field[in_y - 1][in_x] == 'X')
+				{
+					while (true)
+					{
+						i++;
+						if (field[in_y + i][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y + i][in_x] == 'X')
+						{
+							if (in_y + i == SIZE - 1)
+							{
+								for (int i(1); ; i++)
+								{
+									if (field[in_y - i][in_x] == (char)254)
+									{
+										flag = true;
+										break;
+									}
+									else if (field[in_y - i][in_x] == 'X')
+									{
+										if (field[in_y - i - 1][in_x] == '*' || field[in_y - i - 1][in_x] == ' ')
+										{
+											flag = false;
+											break;
+										}
+										else if (field[in_y - i - 1][in_x] == (char)254)
+										{
+											flag = true;
+											break;
+										}
+										else continue;
+									}
+								}
+								break;
+							}
+							else if (field[in_y + i + 1][in_x] == '*' || field[in_y + i + 1][in_x] == ' ')
+							{
+								if (field[in_y - i][in_x] == '*' || field[in_y - i][in_x] == ' ')
+								{
+									flag = false;
+									break;
+								}
+								else if (field[in_y - i][in_x] == (char)254)
+								{
+									flag = true;
+									break;
+								}
+								else if (field[in_y - i][in_x] == 'X')
+								{
+									if (in_y - i == 0)
+									{
+										flag = false;
+										break;
+									}
+									else if (field[in_y - i - 1][in_x] == '*' || field[in_y - i - 1][in_x] == ' ')
+									{
+										flag = false;
+										break;
+									}
+									else if (field[in_y - i - 1][in_x] == (char)254)
+									{
+										flag = true;
+										break;
+									}
+									else continue;
+								}
+							}
+							else if (field[in_y + i + 1][in_x] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+						else if (field[in_y - i][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y - i][in_x] == 'X')
+						{
+							if (in_y - i == 0 || field[in_y - i - 1][in_x] == '*' || field[in_y - i - 1][in_x] == ' ')
+							{
+								if (field[in_y + i][in_x] == '*' || field[in_y + i][in_x] == ' ')
+								{
+									flag = false;
+									break;
+								}
+							}
+							else if (field[in_y - i - 1][in_x] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+					}
+					i = 0;
+				}
+				else if (field[in_y][in_x + 1] == (char)254 || field[in_y][in_x + 1] == 'X')
+				{
+					while (true)
+					{
+						i++;
+						if (field[in_y][in_x + i] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y][in_x + i] == 'X')
+						{
+							if (field[in_y][in_x + i + 1] == '*' || field[in_y][in_x + i + 1] == ' ')
+							{
+								flag = false;
+								break;
+							}
+							else if (field[in_y][in_x + i + 1] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+					}
+					i = 0;
+				}
+				else
+					flag = false;
+			}
+			else if (in_y > 0 && in_y < SIZE - 1 && in_x == SIZE - 1)
+			{
+				if (field[in_y + 1][in_x] == (char)254 || field[in_y + 1][in_x] == 'X' || field[in_y - 1][in_x] == (char)254 || field[in_y - 1][in_x] == 'X')
+				{
+					while (true)
+					{
+						i++;
+						if (field[in_y + i][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y + i][in_x] == 'X')
+						{
+							if (in_y + i == SIZE - 1)
+							{
+								for (int i(1); ; i++)
+								{
+									if (field[in_y - i][in_x] == (char)254)
+									{
+										flag = true;
+										break;
+									}
+									else if (field[in_y - i][in_x] == 'X')
+									{
+										if (field[in_y - i - 1][in_x] == '*' || field[in_y - i - 1][in_x] == ' ')
+										{
+											flag = false;
+											break;
+										}
+										else if (field[in_y - i - 1][in_x] == (char)254)
+										{
+											flag = true;
+											break;
+										}
+										else continue;
+									}
+								}
+								break;
+							}
+							else if (field[in_y + i + 1][in_x] == '*' || field[in_y + i + 1][in_x] == ' ')
+							{
+								if (field[in_y - i][in_x] == '*' || field[in_y - i][in_x] == ' ')
+								{
+									flag = false;
+									break;
+								}
+								else if (field[in_y - i][in_x] == (char)254)
+								{
+									flag = true;
+									break;
+								}
+								else if (field[in_y - i][in_x] == 'X')
+								{
+									if (in_y - i == 0)
+									{
+										flag = false;
+										break;
+									}
+									else if (field[in_y - i - 1][in_x] == '*' || field[in_y - i - 1][in_x] == ' ')
+									{
+										flag = false;
+										break;
+									}
+									else if (field[in_y - i - 1][in_x] == (char)254)
+									{
+										flag = true;
+										break;
+									}
+									else continue;
+								}
+							}
+							else if (field[in_y + i + 1][in_x] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+						else if (field[in_y - i][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y - i][in_x] == 'X')
+						{
+							if (in_y - i == 0 || field[in_y - i - 1][in_x] == '*' || field[in_y - i - 1][in_x] == ' ')
+							{
+								if (field[in_y + i][in_x] == '*' || field[in_y + i][in_x] == ' ')
+								{
+									flag = false;
+									break;
+								}
+							}
+							else if (field[in_y - i - 1][in_x] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+					}
+					i = 0;
+				}
+				else if (field[in_y][in_x - 1] == (char)254 || field[in_y][in_x - 1] == 'X')
+				{
+					while (true)
+					{
+						i++;
+						if (field[in_y][in_x - i] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y][in_x - i] == 'X')
+						{
+							if (field[in_y][in_x - i - 1] == '*' || field[in_y][in_x - i - 1] == ' ')
+							{
+								flag = false;
+								break;
+							}
+							else if (field[in_y][in_x - i - 1] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+					}
+					i = 0;
+				}
+				else
+					flag = false;
+			}
+			else if (in_y == 0 && in_x > 0 && in_x < SIZE - 1)
+			{
+				if (field[in_y][in_x + 1] == (char)254 || field[in_y][in_x + 1] == 'X' || field[in_y][in_x - 1] == (char)254 || field[in_y][in_x - 1] == 'X')
+				{
+					while (true)
+					{
+						i++;
+						if (field[in_y][in_x + i] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y][in_x + i] == 'X')
+						{
+							if (in_x + i == SIZE - 1)
+							{
+								for (int i(1); ; i++)
+								{
+									if (field[in_y][in_x - i] == (char)254)
+									{
+										flag = true;
+										break;
+									}
+									else if (field[in_y][in_x - i] == 'X')
+									{
+										if (field[in_y][in_x - i - 1] == '*' || field[in_y][in_x - i - 1] == ' ')
+										{
+											flag = false;
+											break;
+										}
+										else if (field[in_y][in_x - i - 1] == (char)254)
+										{
+											flag = true;
+											break;
+										}
+										else continue;
+									}
+								}
+								break;
+							}
+							else if (field[in_y][in_x + i + 1] == '*' || field[in_y][in_x + i + 1] == ' ')
+							{
+								if (field[in_y][in_x - i] == '*' || field[in_y][in_x - i] == ' ')
+								{
+									flag = false;
+									break;
+								}
+								else if (field[in_y][in_x - i] == (char)254)
+								{
+									flag = true;
+									break;
+								}
+								else if (field[in_y][in_x - i] == 'X')
+								{
+									if (in_x - i == 0)
+									{
+										flag = false;
+										break;
+									}
+									else if (field[in_y][in_x - i - 1] == '*' || field[in_y][in_x - i - 1] == ' ')
+									{
+										flag = false;
+										break;
+									}
+									else if (field[in_y][in_x - i - 1] == (char)254)
+									{
+										flag = true;
+										break;
+									}
+									else continue;
+								}
+							}
+							else if (field[in_y][in_x + i + 1] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+						else if (field[in_y][in_x - i] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y][in_x - i] == 'X')
+						{
+							if (in_x - i == 0 || field[in_y][in_x - i - 1] == '*' || field[in_y][in_x - i - 1] == ' ')
+							{
+								if (field[in_y][in_x + i] == '*' || field[in_y][in_x + i] == ' ')
+								{
+									flag = false;
+									break;
+								}
+							}
+							else if (field[in_y][in_x - i - 1] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+					}
+					i = 0;
+				}
+				else if (field[in_y + 1][in_x] == (char)254 || field[in_y + 1][in_x] == 'X')
+				{
+					while (true)
+					{
+						i++;
+						if (field[in_y + i][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y + i][in_x] == 'X')
+						{
+							if (field[in_y + i + 1][in_x] == '*' || field[in_y + i + 1][in_x] == ' ')
+							{
+								flag = false;
+								break;
+							}
+							else if (field[in_y + i + 1][in_x] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+					}
+					i = 0;
+				}
+				else
+					flag = false;
+			}
+			else if (in_y == SIZE - 1 && in_x > 0 && in_x < SIZE - 1)
+			{
+				if (field[in_y][in_x + 1] == (char)254 || field[in_y][in_x + 1] == 'X' || field[in_y][in_x - 1] == (char)254 || field[in_y][in_x - 1] == 'X')
+				{
+					while (true)
+					{
+						i++;
+						if (field[in_y][in_x + i] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y][in_x + i] == 'X')
+						{
+							if (in_x + i == SIZE - 1)
+							{
+								for (int i(1); ; i++)
+								{
+									if (field[in_y][in_x - i] == (char)254)
+									{
+										flag = true;
+										break;
+									}
+									else if (field[in_y][in_x - i] == 'X')
+									{
+										if (field[in_y][in_x - i - 1] == '*' || field[in_y][in_x - i - 1] == ' ')
+										{
+											flag = false;
+											break;
+										}
+										else if (field[in_y][in_x - i - 1] == (char)254)
+										{
+											flag = true;
+											break;
+										}
+										else continue;
+									}
+								}
+								break;
+							}
+							else if (field[in_y][in_x + i + 1] == '*' || field[in_y][in_x + i + 1] == ' ')
+							{
+								if (field[in_y][in_x - i] == '*' || field[in_y][in_x - i] == ' ')
+								{
+									flag = false;
+									break;
+								}
+								else if (field[in_y][in_x - i] == (char)254)
+								{
+									flag = true;
+									break;
+								}
+								else if (field[in_y][in_x - i] == 'X')
+								{
+									if (in_x - i == 0)
+									{
+										flag = false;
+										break;
+									}
+									else if (field[in_y][in_x - i - 1] == '*' || field[in_y][in_x - i - 1] == ' ')
+									{
+										flag = false;
+										break;
+									}
+									else if (field[in_y][in_x - i - 1] == (char)254)
+									{
+										flag = true;
+										break;
+									}
+									else continue;
+								}
+							}
+							else if (field[in_y][in_x + i + 1] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+						else if (field[in_y][in_x - i] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y][in_x - i] == 'X')
+						{
+							if (in_x - i == 0 || field[in_y][in_x - i - 1] == '*' || field[in_y][in_x - i - 1] == ' ')
+							{
+								if (field[in_y][in_x + i] == '*' || field[in_y][in_x + i] == ' ')
+								{
+									flag = false;
+									break;
+								}
+							}
+							else if (field[in_y][in_x - i - 1] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+					}
+					i = 0;
+				}
+				else if (field[in_y - 1][in_x] == (char)254 || field[in_y - 1][in_x] == 'X')
+				{
+					while (true)
+					{
+						i++;
+						if (field[in_y - i][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y - i][in_x] == 'X')
+						{
+							if (field[in_y - i - 1][in_x] == '*' || field[in_y - i - 1][in_x] == ' ')
+							{
+								flag = false;
+								break;
+							}
+							else if (field[in_y - i - 1][in_x] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+					}
+					i = 0;
+				}
+				else
+					flag = false;
+			}
+			else {
+				if (field[in_y][in_x + 1] == (char)254 || field[in_y][in_x + 1] == 'X' || field[in_y][in_x - 1] == (char)254 || field[in_y][in_x - 1] == 'X')
+				{
+					while (true)
+					{
+						i++;
+						if (field[in_y][in_x + i] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y][in_x + i] == 'X')
+						{
+							if (in_x + i == SIZE - 1)
+							{
+								for (int i(1); ; i++)
+								{
+									if (field[in_y][in_x - i] == (char)254)
+									{
+										flag = true;
+										break;
+									}
+									else if (field[in_y][in_x - i] == 'X')
+									{
+										if (field[in_y][in_x - i - 1] == '*' || field[in_y][in_x - i - 1] == ' ')
+										{
+											flag = false;
+											break;
+										}
+										else if (field[in_y][in_x - i - 1] == (char)254)
+										{
+											flag = true;
+											break;
+										}
+										else continue;
+									}
+								}
+								break;
+							}
+							else if (field[in_y][in_x + i + 1] == '*' || field[in_y][in_x + i + 1] == ' ')
+							{
+								if (field[in_y][in_x - i] == '*' || field[in_y][in_x - i] == ' ')
+								{
+									flag = false;
+									break;
+								}
+								else if (field[in_y][in_x - i] == (char)254)
+								{
+									flag = true;
+									break;
+								}
+								else if (field[in_y][in_x - i] == 'X')
+								{
+									if (in_x - i == 0)
+									{
+										flag = false;
+										break;
+									}
+									else if (field[in_y][in_x - i - 1] == '*' || field[in_y][in_x - i - 1] == ' ')
+									{
+										flag = false;
+										break;
+									}
+									else if (field[in_y][in_x - i - 1] == (char)254)
+									{
+										flag = true;
+										break;
+									}
+									else continue;
+								}
+							}
+							else if (field[in_y][in_x + i + 1] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+						else if (field[in_y][in_x - i] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y][in_x - i] == 'X')
+						{
+							if (in_x - i == 0 || field[in_y][in_x - i - 1] == '*' || field[in_y][in_x - i - 1] == ' ')
+							{
+								if (field[in_y][in_x + i] == '*' || field[in_y][in_x + i] == ' ')
+								{
+									flag = false;
+									break;
+								}
+							}
+							else if (field[in_y][in_x - i - 1] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+					}
+					i = 0;
+				}
+				else if (field[in_y + 1][in_x] == (char)254 || field[in_y + 1][in_x] == 'X' || field[in_y - 1][in_x] == (char)254 || field[in_y - 1][in_x] == 'X')
+				{
+					while (true)
+					{
+						i++;
+						if (field[in_y + i][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y + i][in_x] == 'X')
+						{
+							if (in_y + i == SIZE - 1)
+							{
+								for (int i(1); ; i++)
+								{
+									if (field[in_y - i][in_x] == (char)254)
+									{
+										flag = true;
+										break;
+									}
+									else if (field[in_y - i][in_x] == 'X')
+									{
+										if (field[in_y - i - 1][in_x] == '*' || field[in_y - i - 1][in_x] == ' ')
+										{
+											flag = false;
+											break;
+										}
+										else if (field[in_y - i - 1][in_x] == (char)254)
+										{
+											flag = true;
+											break;
+										}
+										else continue;
+									}
+								}
+								break;
+							}
+							else if (field[in_y + i + 1][in_x] == '*' || field[in_y + i + 1][in_x] == ' ')
+							{
+								if (field[in_y - i][in_x] == '*' || field[in_y - i][in_x] == ' ')
+								{
+									flag = false;
+									break;
+								}
+								else if (field[in_y - i][in_x] == (char)254)
+								{
+									flag = true;
+									break;
+								}
+								else if (field[in_y - i][in_x] == 'X')
+								{
+									if (in_y - i == 0)
+									{
+										flag = false;
+										break;
+									}
+									else if (field[in_y - i - 1][in_x] == '*' || field[in_y - i - 1][in_x] == ' ')
+									{
+										flag = false;
+										break;
+									}
+									else if (field[in_y - i - 1][in_x] == (char)254)
+									{
+										flag = true;
+										break;
+									}
+									else continue;
+								}
+							}
+							else if (field[in_y + i + 1][in_x] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+						else if (field[in_y - i][in_x] == (char)254)
+						{
+							flag = true;
+							break;
+						}
+						else if (field[in_y - i][in_x] == 'X')
+						{
+							if (in_y - i == 0 || field[in_y - i - 1][in_x] == '*' || field[in_y - i - 1][in_x] == ' ')
+							{
+								if (field[in_y + i][in_x] == '*' || field[in_y + i][in_x] == ' ')
+								{
+									flag = false;
+									break;
+								}
+							}
+							else if (field[in_y - i - 1][in_x] == (char)254)
+							{
+								flag = true;
+								break;
+							}
+							else continue;
+						}
+					}
+					i = 0;
+				}
+			}
+		}
+		else
+		{
+			in_y = rand() % 10;
+			in_x = rand() % 10;
+		}
+	}
+}
+
+bool win()
+{
+	int cntr = 0, cntr1 = 0;
+	while (cntr || cntr1)
+	{
+		cntr = cntr1 = 0;
+		for (int i = 0; i < SIZE; i++)//
+		{
+			for (int j = 0; j < SIZE; j++)
+			{
+				if (field[i][j] == (char)254)
+					cntr++;
+				if (field_pc[i][j] == (char)254)
+					cntr1++;
+			}
+		}
+		if (!cntr || !cntr1) return true;
+		else return false;
+	}
+}
+
+
+
+int main()
+{
+	srand(time(0));
+	for (int i = 0; i < SIZE; i++)//zapovnyemo pole probilamu
+	{
+		for (int j = 0; j < SIZE; j++)
+			field[i][j] = ' ';
+	}
+	for (int i = 0; i < SIZE; i++)//zapovnyemo pole probilamu
+	{
+		for (int j = 0; j < SIZE; j++)
+			field_pc[i][j] = ' ';
+	}
+	/*instruction();*/
+	//system("cls");
+	//setlocale(0, ".1251");
+	//std::cout << "\nВведите имя игрока:";
+	//std::cin >> name;
+	fleet();
+	fleet_pc();
+	if (rand() & 1)
+		step = true;
+	else step = false;
+
+	/*while (!win())
+	{*/
+	system("cls");
+	fld();
+	std::cout << std::endl << std::endl << std::endl;
+	fld_shoot();
+	setlocale(0, ".1251");
+	if (step)
+	{
+		std::cout << "\nХодит " << name << " : ";
+		std::cout << "\nВведите адрес ячейки по которой хотите произвести выстрел (например: А 5): ____\b\b\b";
+		std::cin >> coordinate1 >> coordinate2;
+		std::cin.clear();
+		coordinate1 = toupper(coordinate1);
+		coordinate1 -= A;
+		coordinate2 -= 1;
+		if ((int)coordinate1 < 0 || (int)coordinate1 >= SIZE || coordinate2 < 0 || coordinate2 >= SIZE)
+		{
+			std::cout << "Неправильно введены координаты. Первая координата — буквы латинского алфавита от А до J. Вторая координата — цыфры от 1 до 10.\n"
+				"Пожалуйста, попробуйте снова.\n";
+			_getch();
+			_getch();
+		}
+		else {
+			shoot(coordinate1, coordinate2);
+		}
+	}
+	else
+	{
+		std::cout << "\nХодит " << name_pc << " : ";
+	}
+
+
+	/*}*/
+	_getch();
+	_getch();
+	return 0;
+}

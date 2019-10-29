@@ -1,0 +1,135 @@
+1. logotup vstavlyaetsya "kartunkouy"(zobrajennya png) na adminci(na servak),
+ vse reshta yakcho mojna namalyvatu CSSom to malyem.
+2. roli propusyvatu
+3.mikrorozmitka
+4.codepen.oi - search 
+5. kolir zadaet'sya cherez HEX (napruklad:#123FFF)
+6.minifikaciya sumvoliv i rozmiriv fynkciy i classiv
+7.cntrl shift alt s - sohranit' dlya weba PNG- 8 (photoshop)
+8. VirtualCode - cntrl alt l - formatyvannya teksty
+9. VirtualCode - cntrl alt ? -commentyvannya
+
+https://www.fontsquirrel.com
+
+https://temp-mail.org/ru/ - tumchasova pochta
+
+xepacafici@acemail.info q1w2e3r4t5y6 - avocode
+
+myAPIkey - 36459759fd204587b4a5d9166e8fb4b5
+
+taski popadauyt v task que (chergy) a z vidtu v osnovnuy potik
+
+mongodb+srv://carryCh:<password>@cluster0-lmq5x.mongodb.net/test?retryWrites=true&w=majority
+
+1main thread
+2tasck queue
+3callstack
+
+national-geographic
+abc-news
+al-jazeera-english
+bbc-sport
+bild
+cnn
+business-insider
+fox-sports
+
+git branch --list
+
+git branch DEV
+git branch authorization
+
+git branch --list
+
+git checkout DEV
+
+git add .
+
+git commit -m "Init DEV branch"
+
+git push origin DEV
+
+polituka ekonomika sport tehnologiui ekologiya
+
+git branch G-API
+
+git checkout G-APi
+
+дмитрий лаврик - видосики
+
+git branch --list
+
+git checkout DEV
+
+git merge G-API
+
+git add .
+
+git commit -m "Marge from G-API"
+
+git push origin DEV
+
+UI-JS-Combiner
+
+git checkout UI-JS-Combiner
+
+git add.
+
+git commit -m "Combined"
+
+git push origin UI-JS-Combiner
+
+git checkout DEV
+
+git merge UI-JS-Combiner
+
+C:\Users\Hp\node_modules
+Blog:
+1)Express
+2)bootstrap4
+3)Mongo/mongoose
+4)shablon hbs
+5.1 home
+5.2 about
+5.3 contact
+5.4 blog
+5.5 404
+5.6 admin
+
+6. Posts
+6.1 title
+6.2 Prewiv(maluy opus)
+6.3 Author
+6.4 Date
+6.5 Paginaciya(po 5 postiv)
+sort po dati
+
+rozsharutu facebook (share)
+
+7.Singlepost page
+
+8. opcionalno: likes, comentari
+
+pislya comenta i posta pruhodut na pochty i yogo pidtverdutu nodemailer
+
+9.admin panel:
+9.1 add post
+9.2 edit profil (sviy profil')
+9.3 edit posts
+9.4 delete posts
+
+ roli: admin, user,moderator
+
+git: NodeBlog
+
+C:\Users\Hp\AppData\Roaming\npm\node-sass.cmd
+$FileName$ $FileNameWithoutExtension$.css
+$FileNameWithoutExtension$.css
+
+-- »спользу€ внутреннее объединение в результирующей таблице получите имена продавцов и соответствующие им имена их клиентов, суммы их продаж и город... 
+подсказка: дл€ получени€ результата необходимо производить двойное объединение - объединение 
+продавцов с клиентами на основе пол€ snum и второе объединение заказов с клиентами на основе пол€ cnum... результат должен быть представлен одним запросом
+
+SELECT s.sname, c.cname, s.city, o.amt FROM salers s INNER JOIN customers c INNER JOIN orders o ON c.snum = s.snum AND c.cnum = o.cnum 
+
+ckeditor

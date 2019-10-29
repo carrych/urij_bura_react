@@ -1,0 +1,17 @@
+CI/CD
+
+zaytu na sviy jenkins
+
+1)sozdat' item: create UI image(sozdat s svobodnoy konfigyracuey)
+opcuya: vubrat GIT
+2)dobavut git repo (v pole repositoryu URL)
+3)add: SSH privet key - na deploy , a dlya ychobu vuburaem username and pass;
+4)id:teamlabGitHubRepo
+5)vubratu vetky UI
+6) vupolnit komandy shell echo "works"
+7)biuld triggers : oprashuvat SCM ob izmineniyam
+'* * * * *' - oznachae sho byde oputyvatu kojny hv
+8)general - ydalyat ystarevshue zborki - skolko dney hranit 5 i dryge pole toje 5
+9)sobrat seychas proect create UI image
+
+
